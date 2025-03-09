@@ -18,9 +18,21 @@ nav {
     border-bottom: 2px solid #333;
 }
 
-nav h1 {
-    font-size: 20px;
-    font-weight: bold;
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+/* Navbar Buttons */
+.nav-buttons {
+    display: flex;
+    gap: 10px;
 }
 
 .nav-buttons button {
@@ -28,7 +40,6 @@ nav h1 {
     color: white;
     border: none;
     padding: 10px 14px;
-    margin-left: 10px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
@@ -40,31 +51,47 @@ nav h1 {
 
 /* Heatmap Layout */
 #heatmap-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    max-width: 900px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0px; /* Ensures tiles touch each other with no gaps */
+    max-width: 1200px;
     margin: 20px auto;
+    padding: 10px;
     justify-content: center;
+    align-items: center;
 }
 
 /* Stock Tile */
 .stock-box {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    border-radius: 5px;
+    text-align: center;
+    position: relative;
     transition: transform 0.3s ease-in-out;
-    min-width: 60px;
-    min-height: 60px;
-    padding: 10px;
+    border: 1px solid #333; /* Helps define tile edges */
+}
+
+.stock-box strong {
+    font-size: 14px;
+}
+
+.stock-box span {
+    font-size: 12px;
+    margin-top: 3px;
 }
 
 .stock-box:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
+}
+
+/* Total Portfolio Value */
+#total-portfolio-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 20px;
 }
 
 /* Popup */
@@ -74,12 +101,20 @@ nav h1 {
     color: white;
     padding: 8px;
     border-radius: 5px;
-    display: none;
     text-align: left;
     font-size: 12px;
+    z-index: 10;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    display: none;
 }
 
-.stock-box:hover .stock-popup {
+/* Keep popup visible when interacting */
+.stock-box:hover .stock-popup,
+.stock-popup:hover {
     display: block;
 }
 
@@ -95,11 +130,13 @@ nav h1 {
     border-radius: 8px;
     text-align: left;
     z-index: 1000;
+    width: 350px;
 }
 
 .modal-content {
     display: flex;
     flex-direction: column;
+    padding: 15px;
 }
 
 .modal label {
@@ -134,4 +171,34 @@ nav h1 {
 
 .modal button:hover {
     background: #0056b3;
+}
+
+/* Holdings List */
+#holdingsList {
+    list-style: none;
+    padding: 0;
+}
+
+#holdingsList li {
+    display: flex;
+    justify-content: space-between;
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #heatmap-container {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+
+    .stock-box strong {
+        font-size: 12px;
+    }
+
+    .stock-box span {
+        font-size: 10px;
+    }
 }
