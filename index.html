@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Heatmap</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <h1>Stock Heatmap</h1>
+        <div class="nav-buttons">
+            <button id="addStockBtn">+ Add Stock</button>
+            <button id="viewHoldingsBtn">📋 View Holdings</button>
+        </div>
+    </nav>
+
+    <!-- Stock Heatmap Container -->
+    <div id="heatmap-container"></div>
+
+    <!-- Add Stock Form Modal -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Stock</h2>
+            <form id="stock-form">
+                <label>Symbol:</label>
+                <input type="text" id="symbol" placeholder="AAPL" required>
+                <label>Shares Owned:</label>
+                <input type="number" id="sharesOwned" placeholder="100" required>
+                <label>Avg Price per Share:</label>
+                <input type="number" step="0.01" id="avgPrice" placeholder="150.50" required>
+                <div class="modal-actions">
+                    <button type="submit">Add</button>
+                    <button type="button" id="closeAddStock">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Stock Form Modal -->
+    <div id="editStockModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Stock</h2>
+            <form id="edit-stock-form">
+                <input type="hidden" id="editIndex">
+                <label>Symbol:</label>
+                <input type="text" id="editSymbol" disabled>
+                <label>Shares Owned:</label>
+                <input type="number" id="editSharesOwned" required>
+                <label>Avg Price per Share:</label>
+                <input type="number" step="0.01" id="editAvgPrice" required>
+                <div class="modal-actions">
+                    <button type="submit">Save</button>
+                    <button type="button" id="closeEditStock">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Holdings Modal -->
+    <div id="holdingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Stock Holdings</h2>
+            <ul id="holdingsList"></ul>
+            <button id="closeHoldings">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
