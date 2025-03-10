@@ -20,11 +20,10 @@ Portfolio Heatmap is an interactive web-based dashboard that visualizes your inv
 - **Responsive & Modern Design:**  
   Features a sleek dark theme with a fixed container that adapts to the viewable area of your screen, ensuring an engaging experience on any device.
 
-## Screenshots
+## Screenshot
 
-*Include screenshots here if available, for example:*
 
-![Portfolio Heatmap Screenshot](screenshot.png)
+![Portfolio Heatmap Screenshot](heatmap_screenshot.jpg)
 
 ## Installation
 
@@ -32,3 +31,17 @@ Portfolio Heatmap is an interactive web-based dashboard that visualizes your inv
 
    ```bash
    git clone https://github.com/yourusername/portfolio-heatmap.git
+
+2. **Double click on the index.html file to open the project in your web browser**
+
+## Future features
+
+1. **Live stock data**
+
+2. **Portfolio performance visualizations**
+
+3. **Multiple time frames for analysis**
+
+4. **Cloud based deployment and user account features**
+
+5. **Abandon local storage in favor of database**
