@@ -1,187 +1,265 @@
-const stockData = JSON.parse(localStorage.getItem("stockData")) || [];
-const heatmapContainer = document.getElementById("heatmap-container");
-const totalPortfolioValueText = document.getElementById("total-portfolio-value");
-const stockForm = document.getElementById("stock-form");
-const editStockForm = document.getElementById("edit-stock-form");
-const holdingsList = document.getElementById("holdingsList");
-
-// Buttons
-const addStockBtn = document.getElementById("addStockBtn");
-const viewHoldingsBtn = document.getElementById("viewHoldingsBtn");
-const closeAddStock = document.getElementById("closeAddStock");
-const closeEditStock = document.getElementById("closeEditStock");
-const closeHoldings = document.getElementById("closeHoldings");
-
-// Modals
-const addStockModal = document.getElementById("addStockModal");
-const editStockModal = document.getElementById("editStockModal");
-const holdingsModal = document.getElementById("holdingsModal");
-
-// Function to save data to local storage
-const saveToLocalStorage = () => {
-    localStorage.setItem("stockData", JSON.stringify(stockData));
-};
-
-// Function to calculate total portfolio value
-const calculateTotalPortfolioValue = () => {
-    const totalValue = stockData.reduce((sum, stock) => sum + (stock.sharesOwned * stock.avgPrice), 0);
-    totalPortfolioValueText.innerText = `Total Portfolio Value: $${totalValue.toFixed(2)}`;
-};
-
-// Function to determine tile size based on investment weight
-const getTileSize = (investment, maxInvestment) => {
-    return Math.max(60, Math.floor((investment / maxInvestment) * 300)); // Scale dynamically
-};
-
-// Function to determine color based on stock change
-const getColor = (change) => {
-    if (change >= 5) return "#00FF00"; 
-    if (change > 0) return "#00C853"; 
-    if (change === 0) return "#666666"; 
-    if (change > -5) return "#D32F2F"; 
-    return "#8B0000"; 
-};
-
-// Function to update heatmap layout **NO GAPS**
-const updateHeatmap = () => {
-    heatmapContainer.innerHTML = "";
-    saveToLocalStorage();
-    calculateTotalPortfolioValue();
-
-    if (stockData.length === 0) {
-        heatmapContainer.innerHTML = "<p>No stocks added yet.</p>";
-        return;
+document.addEventListener("DOMContentLoaded", () => {
+    let investments = [];
+    const heatmapGrid = document.getElementById('heatmapGrid');
+    const investmentModal = document.getElementById('investmentModal');
+    const listModal = document.getElementById('listModal');
+    const closeModal = document.getElementById('closeModal');
+    const closeListModal = document.getElementById('closeListModal');
+    const addInvestmentBtn = document.getElementById('addInvestmentBtn');
+    const viewInvestmentsBtn = document.getElementById('viewInvestmentsBtn');
+    const investmentForm = document.getElementById('investmentForm');
+    const investmentList = document.getElementById('investmentList');
+    const modalTitle = document.getElementById('modalTitle');
+  
+    // Load investments from localStorage if available
+    if (localStorage.getItem('investments')) {
+      investments = JSON.parse(localStorage.getItem('investments'));
+      renderInvestments();
     }
-
-    stockData.sort((a, b) => (b.sharesOwned * b.avgPrice) - (a.sharesOwned * a.avgPrice));
-    const maxInvestment = Math.max(...stockData.map(stock => stock.sharesOwned * stock.avgPrice));
-
-    // Grid setup for **rectangular, gap-free layout**
-    heatmapContainer.style.display = "grid";
-    heatmapContainer.style.gridTemplateColumns = "repeat(auto-fit, minmax(80px, 1fr))";
-    heatmapContainer.style.gap = "0px"; // Ensures tiles touch each other
-
-    stockData.forEach((stock, index) => {
-        const investment = stock.sharesOwned * stock.avgPrice;
-        const tileSize = getTileSize(investment, maxInvestment);
-
-        const stockBox = document.createElement("div");
-        stockBox.classList.add("stock-box");
-        stockBox.style.backgroundColor = getColor(stock.change);
-        stockBox.style.width = `${tileSize}px`;
-        stockBox.style.height = `${tileSize}px`;
-        stockBox.innerHTML = `
-            <strong>${stock.symbol}</strong>
-            <br>
-            <span>${stock.change}%</span>
-        `;
-
-        // Popup details (Now remains visible for interaction)
-        const popup = document.createElement("div");
-        popup.classList.add("stock-popup");
-        popup.innerHTML = `
-            <strong>${stock.symbol}</strong><br>
-            Shares: ${stock.sharesOwned}<br>
-            Avg Price: $${stock.avgPrice.toFixed(2)}<br>
-            Market Value: $${investment.toFixed(2)}<br>
-            Change: ${stock.change}%
-            <br>
-            <button class="edit-button" onclick="openEditForm(${index})">Edit</button>
-            <button class="remove-button" onclick="removeStock(${index})">Remove</button>
+  
+    // Save investments to localStorage
+    function saveInvestments() {
+      localStorage.setItem('investments', JSON.stringify(investments));
+    }
+  
+    // --- TREEMAP LAYOUT ALGORITHM (Slice-and-Dice) ---
+    // Recursively splits the container rectangle among items.
+    function layoutTreemap(items, rect, vertical) {
+      if (items.length === 0) return [];
+      if (items.length === 1) {
+        return [{
+          id: items[0].id,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height
+        }];
+      }
+      const totalValue = items.reduce((sum, item) => sum + item.value, 0);
+      let running = 0, splitIndex = 0;
+      for (let i = 0; i < items.length; i++) {
+        running += items[i].value;
+        if (running >= totalValue / 2) {
+          splitIndex = i + 1;
+          break;
+        }
+      }
+      if (splitIndex === 0) splitIndex = 1;
+      const group1 = items.slice(0, splitIndex);
+      const group2 = items.slice(splitIndex);
+      const sumGroup1 = group1.reduce((s, item) => s + item.value, 0);
+      const layouts = [];
+      if (vertical) {
+        const width1 = rect.width * (sumGroup1 / totalValue);
+        const rect1 = { x: rect.x, y: rect.y, width: width1, height: rect.height };
+        const rect2 = { x: rect.x + width1, y: rect.y, width: rect.width - width1, height: rect.height };
+        layouts.push(...layoutTreemap(group1, rect1, !vertical));
+        layouts.push(...layoutTreemap(group2, rect2, !vertical));
+      } else {
+        const height1 = rect.height * (sumGroup1 / totalValue);
+        const rect1 = { x: rect.x, y: rect.y, width: rect.width, height: height1 };
+        const rect2 = { x: rect.x, y: rect.y + height1, width: rect.width, height: rect.height - height1 };
+        layouts.push(...layoutTreemap(group1, rect1, !vertical));
+        layouts.push(...layoutTreemap(group2, rect2, !vertical));
+      }
+      return layouts;
+    }
+  
+    function computeTreemapLayout(items, containerRect) {
+      // Ensure each item has a "value" property
+      const sorted = items.slice().sort((a, b) => b.value - a.value);
+      const initialOrientation = containerRect.width >= containerRect.height;
+      return layoutTreemap(sorted, containerRect, initialOrientation);
+    }
+    // --- END TREEMAP LAYOUT ALGORITHM ---
+  
+    // Render the heatmap using a fixed container and computed treemap layout.
+    function renderInvestments() {
+      heatmapGrid.innerHTML = '';
+      if (investments.length === 0) {
+        document.getElementById("portfolioValue").textContent = "Total Portfolio Value: $0.00";
+        return;
+      }
+      
+      // Compute total portfolio value and assign each investment a value.
+      let totalValue = 0;
+      investments.forEach(inv => {
+        inv.value = inv.shares * inv.avgPrice;
+        totalValue += inv.value;
+        if (!inv.hasOwnProperty('dailyChange')) {
+          inv.dailyChange = (Math.random() * 10 - 5).toFixed(2);
+        }
+      });
+      document.getElementById("portfolioValue").textContent = "Total Portfolio Value: $" + totalValue.toFixed(2);
+      
+      // Get container dimensions
+      const containerRect = {
+        x: 0,
+        y: 0,
+        width: heatmapGrid.clientWidth,
+        height: heatmapGrid.clientHeight
+      };
+      
+      // Compute layout
+      const layouts = computeTreemapLayout(investments, containerRect);
+      
+      // Create tiles according to layout
+      layouts.forEach(layout => {
+        const inv = investments.find(item => item.id === layout.id);
+        if (!inv) return;
+        const dailyChange = parseFloat(inv.dailyChange);
+        const magnitude = Math.min(Math.abs(dailyChange) / 5, 1);
+        let color;
+        if (dailyChange >= 0) {
+          const lightness = 60 - (magnitude * 20);
+          color = `hsl(120, 70%, ${lightness}%)`;
+        } else {
+          const lightness = 60 - (magnitude * 20);
+          color = `hsl(0, 70%, ${lightness}%)`;
+        }
+        
+        const tile = document.createElement('div');
+        tile.classList.add('investment-tile');
+        // Apply a 4px margin between tiles by adjusting positions and sizes.
+        const tileMargin = 4;
+        tile.style.left = (layout.x + tileMargin/2) + 'px';
+        tile.style.top = (layout.y + tileMargin/2) + 'px';
+        tile.style.width = (layout.width - tileMargin) + 'px';
+        tile.style.height = (layout.height - tileMargin) + 'px';
+        tile.style.backgroundColor = color;
+        
+        tile.innerHTML = `
+          <div class="tile-default">
+            <h3>${inv.stockSymbol.toUpperCase()}</h3>
+            <p>${dailyChange >= 0 ? '+' : ''}${inv.dailyChange}%</p>
+          </div>
+          <div class="tile-hover">
+            <p>Shares: ${inv.shares}</p>
+            <p>Avg Price: $${inv.avgPrice}</p>
+            <p>Total: $${(inv.shares * inv.avgPrice).toFixed(2)}</p>
+            <div class="tile-actions">
+              <button class="list-btn" data-action="edit" data-id="${inv.id}">Edit</button>
+              <button class="list-btn" data-action="delete" data-id="${inv.id}">Delete</button>
+            </div>
+          </div>
         `;
         
-        stockBox.appendChild(popup);
-        
-        // Keep popup visible when hovering
-        stockBox.addEventListener("mouseenter", () => popup.style.display = "block");
-        stockBox.addEventListener("mouseleave", () => {
-            setTimeout(() => {
-                if (!popup.matches(":hover")) popup.style.display = "none";
-            }, 300);
+        heatmapGrid.appendChild(tile);
+      });
+    }
+  
+    // Render the investment list modal
+    function renderInvestmentList() {
+      investmentList.innerHTML = '';
+      investments.forEach(investment => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${investment.stockSymbol.toUpperCase()} - ${investment.shares} shares @ $${investment.avgPrice}</span>
+          <div>
+            <button class="list-btn" data-action="edit" data-id="${investment.id}">Edit</button>
+            <button class="list-btn" data-action="delete" data-id="${investment.id}">Delete</button>
+          </div>
+        `;
+        investmentList.appendChild(li);
+      });
+    }
+  
+    // Open "Add Investment" modal
+    addInvestmentBtn.addEventListener('click', () => {
+      modalTitle.textContent = 'Add Investment';
+      investmentForm.reset();
+      document.getElementById('investmentId').value = '';
+      openModal(investmentModal);
+    });
+  
+    // Open "Investment List" modal
+    viewInvestmentsBtn.addEventListener('click', () => {
+      renderInvestmentList();
+      openModal(listModal);
+    });
+  
+    // Open modal helper
+    function openModal(modal) {
+      modal.style.display = 'block';
+    }
+    // Close modal helper
+    function closeModalFunc(modal) {
+      modal.style.display = 'none';
+    }
+  
+    // Close modals when clicking on the close button
+    closeModal.addEventListener('click', () => closeModalFunc(investmentModal));
+    closeListModal.addEventListener('click', () => closeModalFunc(listModal));
+  
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', (event) => {
+      if (event.target === investmentModal) {
+        closeModalFunc(investmentModal);
+      } else if (event.target === listModal) {
+        closeModalFunc(listModal);
+      }
+    });
+  
+    // Handle form submission for adding or editing an investment
+    investmentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const investmentId = document.getElementById('investmentId').value;
+      const stockSymbol = document.getElementById('stockSymbol').value;
+      const shares = parseFloat(document.getElementById('shares').value);
+      const avgPrice = parseFloat(document.getElementById('avgPrice').value);
+  
+      if (investmentId) {
+        // Edit existing investment
+        investments = investments.map(inv => {
+          if (inv.id === investmentId) {
+            return { ...inv, stockSymbol, shares, avgPrice };
+          }
+          return inv;
         });
-
-        popup.addEventListener("mouseenter", () => popup.style.display = "block");
-        popup.addEventListener("mouseleave", () => popup.style.display = "none");
-
-        heatmapContainer.appendChild(stockBox);
+      } else {
+        // Add new investment with a unique ID
+        const newInvestment = {
+          id: Date.now().toString(),
+          stockSymbol,
+          shares,
+          avgPrice
+        };
+        investments.push(newInvestment);
+      }
+      saveInvestments();
+      renderInvestments();
+      renderInvestmentList();
+      closeModalFunc(investmentModal);
     });
-};
-
-// Function to open edit stock form
-const openEditForm = (index) => {
-    const stock = stockData[index];
-    document.getElementById("editIndex").value = index;
-    document.getElementById("editSymbol").value = stock.symbol;
-    document.getElementById("editSharesOwned").value = stock.sharesOwned;
-    document.getElementById("editAvgPrice").value = stock.avgPrice;
-    editStockModal.style.display = "block";
-};
-
-// Function to save edited stock details
-editStockForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const index = document.getElementById("editIndex").value;
-    const newShares = parseInt(document.getElementById("editSharesOwned").value);
-    const newPrice = parseFloat(document.getElementById("editAvgPrice").value);
-
-    stockData[index].sharesOwned = newShares;
-    stockData[index].avgPrice = newPrice;
-    editStockModal.style.display = "none";
-    updateHeatmap();
-});
-
-// Function to remove a stock
-const removeStock = (index) => {
-    stockData.splice(index, 1);
-    updateHeatmap();
-};
-
-// Handle adding a new stock
-stockForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const symbol = document.getElementById("symbol").value.toUpperCase();
-    const sharesOwned = parseInt(document.getElementById("sharesOwned").value);
-    const avgPrice = parseFloat(document.getElementById("avgPrice").value);
-    const change = (Math.random() * 20 - 10).toFixed(2);
-
-    stockData.push({ symbol, sharesOwned, avgPrice, change });
-    addStockModal.style.display = "none";
-    stockForm.reset();
-    updateHeatmap();
-});
-
-// Function to update holdings list
-const updateHoldingsList = () => {
-    holdingsList.innerHTML = "";
-    if (stockData.length === 0) {
-        holdingsList.innerHTML = "<p>No stocks owned yet.</p>";
-        return;
-    }
-
-    stockData.forEach((stock, index) => {
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `
-            <div class="holding-info">
-                <strong>${stock.symbol}</strong> - ${stock.sharesOwned} shares @ $${stock.avgPrice.toFixed(2)}
-            </div>
-            <div class="holding-buttons">
-                <button class="edit-button" onclick="openEditForm(${index})">Edit</button>
-                <button class="remove-button" onclick="removeStock(${index})">Remove</button>
-            </div>
-        `;
-        holdingsList.appendChild(listItem);
+  
+    // Delegate edit and delete actions (from both the heatmap tiles and investment list)
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('.list-btn')) {
+        const action = e.target.getAttribute('data-action');
+        const id = e.target.getAttribute('data-id');
+        if (action === 'edit') {
+          const inv = investments.find(item => item.id === id);
+          if (inv) {
+            document.getElementById('investmentId').value = inv.id;
+            document.getElementById('stockSymbol').value = inv.stockSymbol;
+            document.getElementById('shares').value = inv.shares;
+            document.getElementById('avgPrice').value = inv.avgPrice;
+            modalTitle.textContent = 'Edit Investment';
+            closeModalFunc(listModal);
+            openModal(investmentModal);
+          }
+        } else if (action === 'delete') {
+          investments = investments.filter(item => item.id !== id);
+          saveInvestments();
+          renderInvestments();
+          renderInvestmentList();
+        }
+      }
     });
-};
-
-// Event Listeners for Modal Buttons
-addStockBtn.addEventListener("click", () => (addStockModal.style.display = "block"));
-viewHoldingsBtn.addEventListener("click", () => {
-    updateHoldingsList();
-    holdingsModal.style.display = "block";
-});
-closeAddStock.addEventListener("click", () => (addStockModal.style.display = "none"));
-closeEditStock.addEventListener("click", () => (editStockModal.style.display = "none"));
-closeHoldings.addEventListener("click", () => (holdingsModal.style.display = "none"));
-
-// Initialize Heatmap
-document.addEventListener("DOMContentLoaded", updateHeatmap);
+  
+    // Re-render treemap on window resize to adjust layout
+    window.addEventListener('resize', () => {
+      renderInvestments();
+    });
+  });
+  

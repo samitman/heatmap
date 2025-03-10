@@ -1,86 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Heatmap</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portfolio Heatmap</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- Navbar -->
-    <nav>
-        <div class="logo">
-            <img src="logo.png" alt="Stock Heatmap Logo">
-            <h1>Stock Heatmap</h1>
-        </div>
-        <div class="nav-buttons">
-            <button id="addStockBtn">+ Add Stock</button>
-            <button id="viewHoldingsBtn">📋 View Holdings</button>
-        </div>
-    </nav>
-
-    <!-- Stock Heatmap Container -->
-    <div id="heatmap-container"></div>
-
-    <!-- Total Portfolio Value -->
-    <h2 id="total-portfolio-value">Total Portfolio Value: $0.00</h2>
-
-    <!-- Add Stock Form Modal -->
-    <div id="addStockModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Stock</h2>
-            <form id="stock-form">
-                <label for="symbol">Symbol:</label>
-                <input type="text" id="symbol" placeholder="AAPL" required>
-                
-                <label for="sharesOwned">Shares Owned:</label>
-                <input type="number" id="sharesOwned" placeholder="100" required>
-                
-                <label for="avgPrice">Avg Price per Share:</label>
-                <input type="number" step="0.01" id="avgPrice" placeholder="150.50" required>
-                
-                <div class="modal-actions">
-                    <button type="submit" class="add-button">Add</button>
-                    <button type="button" id="closeAddStock" class="cancel-button">Cancel</button>
-                </div>
-            </form>
-        </div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <img src="logo.png" alt="Logo" class="logo-img">
+      <span class="site-title">Portfolio Heatmap</span>
     </div>
-
-    <!-- Edit Stock Form Modal -->
-    <div id="editStockModal" class="modal">
-        <div class="modal-content">
-            <h2>Edit Stock</h2>
-            <form id="edit-stock-form">
-                <input type="hidden" id="editIndex">
-                
-                <label for="editSymbol">Symbol:</label>
-                <input type="text" id="editSymbol" disabled>
-                
-                <label for="editSharesOwned">Shares Owned:</label>
-                <input type="number" id="editSharesOwned" required>
-                
-                <label for="editAvgPrice">Avg Price per Share:</label>
-                <input type="number" step="0.01" id="editAvgPrice" required>
-                
-                <div class="modal-actions">
-                    <button type="submit" class="edit-button">Save</button>
-                    <button type="button" id="closeEditStock" class="cancel-button">Cancel</button>
-                </div>
-            </form>
-        </div>
+    <div class="nav-buttons">
+      <button id="addInvestmentBtn">Add Investment</button>
+      <button id="viewInvestmentsBtn">Investment List</button>
     </div>
+  </nav>
 
-    <!-- View Holdings Modal -->
-    <div id="holdingsModal" class="modal">
-        <div class="modal-content">
-            <h2>Stock Holdings</h2>
-            <ul id="holdingsList"></ul>
-            <button id="closeHoldings" class="cancel-button">Close</button>
-        </div>
+  <!-- Fixed Heatmap Container -->
+  <div id="heatmapGrid" class="heatmap-grid"></div>
+
+  <!-- Total Portfolio Value Label -->
+  <div id="portfolioValue" class="portfolio-value">Total Portfolio Value: $0.00</div>
+
+  <!-- Add/Edit Investment Modal -->
+  <div id="investmentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2 id="modalTitle">Add Investment</h2>
+      <form id="investmentForm">
+        <!-- Hidden field to store id during editing -->
+        <input type="hidden" id="investmentId">
+        
+        <label for="stockSymbol">Stock Symbol:</label>
+        <input type="text" id="stockSymbol" name="stockSymbol" required>
+        
+        <label for="shares">Number of Shares:</label>
+        <input type="number" id="shares" name="shares" required>
+        
+        <label for="avgPrice">Average Price:</label>
+        <input type="number" step="0.01" id="avgPrice" name="avgPrice" required>
+        
+        <button type="submit" id="saveInvestment">Save</button>
+      </form>
     </div>
+  </div>
 
-    <script src="script.js"></script>
+  <!-- Investment List Modal -->
+  <div id="listModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeListModal">&times;</span>
+      <h2>Your Investments</h2>
+      <ul id="investmentList"></ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
