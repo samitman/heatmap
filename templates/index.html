@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Portfolio Heatmap</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar">
     <div class="navbar-left">
-      <img src="logo.png" alt="Logo" class="logo-img">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
       <span class="site-title">Portfolio Heatmap</span>
     </div>
     <div class="nav-buttons">
@@ -57,6 +57,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

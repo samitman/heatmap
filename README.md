@@ -5,43 +5,65 @@ Portfolio Heatmap is an interactive web-based dashboard that visualizes your inv
 ## Features
 
 - **Dynamic Treemap Layout:**  
-  Tiles are arranged in a fixed rectangular container using a slice-and-dice treemap algorithm. Each tile’s area is proportional to the value of the investment.
+  Tiles are arranged using a slice-and-dice treemap algorithm, where each tile’s area is proportional to the investment value.
 
 - **Interactive Investment Tiles:**  
-  - **Default View:** Displays the stock ticker and daily percentage change.
-  - **Hover View:** Reveals detailed information including the number of shares, average price, total investment value, and provides edit/delete buttons.
+  - **Default View:** Shows the stock ticker and daily percentage change.
+  - **Hover View:** Reveals detailed information such as the number of shares, average price, and total investment value, along with edit/delete options.
 
 - **Investment Management:**  
-  Easily add, edit, or remove investments through a user-friendly interface.
+  Easily add, edit, or delete investments using a user-friendly interface.
 
 - **Persistent Data:**  
-  Uses browser localStorage to retain your portfolio data across sessions.
+  A lightweight Python backend with SQLite stores your investment data persistently. Data will remain even after restarting the app.
 
 - **Responsive & Modern Design:**  
-  Features a sleek dark theme with a fixed container that adapts to the viewable area of your screen, ensuring an engaging experience on any device.
+  Features a sleek dark theme that adapts to different screen sizes.
 
-## Screenshot
+## Project Structure
+- **/static:** Contains all your CSS, JavaScript, and image files.
+- **/templates:** Contains your HTML files.
+- **app.py:** Runs the Flask server, serves the frontend, and provides REST API endpoints for CRUD operations.
+- **/venv:** Holds your Python virtual environment (ensure this is added to your `.gitignore`).
 
+## Installation & Setup
 
-![Portfolio Heatmap Screenshot](heatmap_screenshot.jpg)
-
-## Installation
-
-1. **Clone the repository:**
+1. **Clone the Repository:**
 
    ```bash
    git clone https://github.com/yourusername/portfolio-heatmap.git
+   cd portfolio-heatmap
 
-2. **Double click on the index.html file to open the project in your web browser**
+2. **Set Up the Virtual Environment:**
 
-## Future features
+  On macOS/Linux:
+  bash
+  Copy
+  python3 -m venv venv
+  source venv/bin/activate
 
-1. **Live stock data**
+  On Windows:
+  bash
+  Copy
+  python -m venv venv
+  venv\Scripts\activate
 
-2. **Portfolio performance visualizations**
+3. **Install Dependencies:**
 
-3. **Multiple time frames for analysis**
+  Install Flask (and Flask-CORS if needed):
 
-4. **Cloud based deployment and user account features**
+  bash
+  Copy
+  pip install Flask flask-cors
 
-5. **Abandon local storage in favor of database**
+  Database Initialization:
+
+  The SQLite database (investments.db) is automatically initialized when you run the app if it doesn't already exist.
+
+4. **Running the Application:**
+  To start the Flask development server, run:
+
+  bash
+  Copy
+  python app.py
+  This will launch the server at http://127.0.0.1:5000/.
